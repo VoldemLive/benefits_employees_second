@@ -4,13 +4,16 @@ const EmployeeEditor = ({
   onAddOrEditEmployee,
   editingEmployee,
   departments,
+  onClose,
 }) => {
+  const [id, setId] = useState("")
   const [name, setName] = useState("")
   const [departmentId, setDepartmentId] = useState("")
   const [dependents, setDependents] = useState([])
 
   useEffect(() => {
     if (editingEmployee) {
+      setId(editingEmployee.id)
       setName(editingEmployee.name)
       setDepartmentId(editingEmployee.departmentId.toString())
       setDependents(editingEmployee.dependents || [])
@@ -36,14 +39,13 @@ const EmployeeEditor = ({
   }
 
   const handleRemoveDependent = (index) => {
-    console.log(index)
     setDependents(dependents.filter((_, i) => i !== index))
   }
 
   const handleSubmit = (event) => {
     event.preventDefault()
     if (name && departmentId) {
-      onAddOrEditEmployee(name, departmentId, dependents)
+      onAddOrEditEmployee(name, departmentId, dependents, id)
       setName("")
       setDepartmentId("")
       setDependents([])
@@ -52,13 +54,18 @@ const EmployeeEditor = ({
     }
   }
 
+  const handleClose = (e) => {
+    e.preventDefault()
+    onClose()
+  }
+
   return (
     <form
       onSubmit={handleSubmit}
       className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
     >
       {/* Name Input */}
-      <div className="mb-4">
+      <div className="mb-4 relative">
         <label
           className="block text-gray-700 text-sm font-bold mb-2"
           htmlFor="employee-name"
@@ -102,33 +109,37 @@ const EmployeeEditor = ({
       {dependents.map((dependent, index) => (
         <div
           key={index}
-          className="flex flex-wrap w-full overflow-clip items-center mb-2"
+          className="flex relative overflow-clip items-center mb-4"
         >
-          <input
-            className="shadow appearance-none border rounded py-2 px-3 text-gray-700 mr-2"
-            type="text"
-            placeholder="Dependent Name"
-            value={dependent.name}
-            onChange={(e) =>
-              handleDependentChange(index, "name", e.target.value)
-            }
-          />
-          <input
-            className="shadow appearance-none border rounded py-2 px-3 text-gray-700"
-            type="text"
-            placeholder="Relation"
-            value={dependent.relation}
-            onChange={(e) =>
-              handleDependentChange(index, "relation", e.target.value)
-            }
-          />
-          <button
-            className="ml-2 text-white bg-red-500 hover:bg-red-700 font-bold py-1 px-2 rounded"
-            type="button"
-            onClick={() => handleRemoveDependent(index)}
-          >
-            Remove
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <input
+              className="w-full shadow appearance-none border rounded py-2 px-3 text-gray-700"
+              type="text"
+              placeholder="Dependent Name"
+              value={dependent.name}
+              onChange={(e) =>
+                handleDependentChange(index, "name", e.target.value)
+              }
+            />
+            <input
+              className="w-full shadow appearance-none border rounded py-2 px-3 text-gray-700"
+              type="text"
+              placeholder="Relation"
+              value={dependent.relation}
+              onChange={(e) =>
+                handleDependentChange(index, "relation", e.target.value)
+              }
+            />
+          </div>
+          <div className="flex">
+            <button
+              className="ml-2 h-full text-white bg-red-500 hover:bg-red-700 font-bold py-1 px-2 rounded"
+              type="button"
+              onClick={() => handleRemoveDependent(index)}
+            >
+              Remove
+            </button>
+          </div>
         </div>
       ))}
       <button
@@ -140,12 +151,20 @@ const EmployeeEditor = ({
       </button>
 
       {/* Submit Button */}
-      <div className="mt-4">
+      <div className="mt-6 flex gap-2">
         <button
+          data-testid="submit-button"
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           type="submit"
         >
-          {editingEmployee ? "Edit" : "Add"} Employee
+          {editingEmployee ? "Update" : "Add"} Employee
+        </button>
+        <button
+          data-testid="close-button"
+          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          onClick={handleClose}
+        >
+          Close
         </button>
       </div>
     </form>

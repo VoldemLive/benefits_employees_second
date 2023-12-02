@@ -35,7 +35,7 @@
     {
       "id": 4,
       "name": "Alice",
-      "departmentId": 1,
+      "departmentId": 2,
       "dependents": [{ "name": "Max", "relation": "Spouse" }]
     },
     {

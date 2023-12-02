@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import initialData from "./data/initialData.json"
 import EmployeeList from "./components/EmployeeList"
 import EmployeeEditor from "./components/EmployeeEditor"
+import calculateBenefitsCost from "./logic/calculateBenefitsCost"
 
 const App = () => {
   const loadData = () => {
@@ -17,6 +18,20 @@ const App = () => {
   const [editingEmployee, setEditingEmployee] = useState(null)
   const [isEditorOpen, setIsEditorOpen] = useState(false)
   const [selectedDepartmentId, setSelectedDepartmentId] = useState("")
+  const myEditingComponentRef = useRef(null)
+
+  const scrollToMyEditing = () => {
+    if (myEditingComponentRef.current) {
+      const offsetTop = myEditingComponentRef.current.offsetTop
+      const offset = 100
+
+      window.scrollTo({
+        top: offsetTop - offset,
+        behavior: "smooth",
+      })
+    }
+  }
+
   useEffect(() => {
     saveData(data)
   }, [data])
@@ -32,6 +47,7 @@ const App = () => {
     : data.employees
 
   const openEditor = () => {
+    scrollToMyEditing()
     setIsEditorOpen(true)
   }
 
@@ -40,16 +56,20 @@ const App = () => {
     setEditingEmployee(null)
   }
 
+  const validateDependents = (dependents) => {
+    const nnn = dependents.reduce((acc, item) => {
+      if (item.name.length > 0) acc.push(item)
+      return acc
+    }, [])
+    return nnn
+  }
+
   const addEmployee = (name, departmentId, dependents) => {
-    if (isEditorOpen) {
-      closeEditor()
-      return
-    }
     const newEmployee = {
       id: data.employees.length + 1,
       name,
       departmentId: parseInt(departmentId),
-      dependents,
+      dependents: validateDependents(dependents),
     }
     setData((prevData) => ({
       ...prevData,
@@ -58,11 +78,17 @@ const App = () => {
     closeEditor()
   }
 
-  const editEmployee = (updatedEmployee) => {
+  const editEmployee = (name, departmentId, dependents, id) => {
+    const updatedEmployee = {
+      id,
+      name,
+      departmentId: parseInt(departmentId),
+      dependents: validateDependents(dependents),
+    }
     setData((prevData) => ({
       ...prevData,
       employees: prevData.employees.map((employee) =>
-        employee.id === editingEmployee.id ? updatedEmployee : employee
+        employee.id === id ? updatedEmployee : employee
       ),
     }))
     setEditingEmployee(null)
@@ -72,33 +98,6 @@ const App = () => {
   const startEditingEmployee = (employee) => {
     setEditingEmployee(employee)
     openEditor()
-  }
-
-  const calculateBenefitsCost = (employee) => {
-    const annualEmployeeCost = 1000
-    const annualDependentCost = 500
-    const paychecksPerYear = 26
-
-    const discount = (name) => {
-      if (!name) {
-        return 1
-      }
-      return name.startsWith("A") ? 0.9 : 1
-    }
-
-    let totalAnnualCost = annualEmployeeCost * discount(employee.name)
-
-    if (employee.dependents && Array.isArray(employee.dependents)) {
-      totalAnnualCost += employee.dependents.reduce((total, dependent) => {
-        return total + annualDependentCost * discount(dependent.name)
-      }, 0)
-    }
-
-    const costPerPaycheck = totalAnnualCost / paychecksPerYear
-    return {
-      annualCost: totalAnnualCost,
-      perPaycheckCost: costPerPaycheck,
-    }
   }
 
   const calculateTotalCostByDepartment = () => {
@@ -112,7 +111,7 @@ const App = () => {
   }
 
   return (
-    <div className="container mx-auto px-4">
+    <div className="container mx-auto px-1 sm:px-4">
       <h1 className="text-2xl font-bold text-center my-4">
         Employee Benefits Calculator
       </h1>
@@ -127,6 +126,7 @@ const App = () => {
           Select Department
         </label>
         <select
+          data-testid="department-select"
           className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           value={selectedDepartmentId}
           onChange={handleDepartmentChange}
@@ -146,21 +146,27 @@ const App = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {isEditorOpen && (
-          <EmployeeEditor
-            onAddOrEditEmployee={editingEmployee ? editEmployee : addEmployee}
-            editingEmployee={editingEmployee}
-            departments={data.departments}
-            onClose={closeEditor}
-          />
-        )}
+      <div className="flex flex-col md:flex-row gap-4">
+        <div ref={myEditingComponentRef} className="w-full">
+          {isEditorOpen && (
+            <EmployeeEditor
+              onAddOrEditEmployee={editingEmployee ? editEmployee : addEmployee}
+              editingEmployee={editingEmployee}
+              departments={data.departments}
+              onClose={closeEditor}
+            />
+          )}
+        </div>
 
-        <EmployeeList
-          employees={selectedDepartmentId ? filteredEmployees : data.employees}
-          onEditEmployee={startEditingEmployee}
-          total={calculateTotalCostByDepartment().toFixed(2)}
-        />
+        <div className="w-full">
+          <EmployeeList
+            employees={
+              selectedDepartmentId ? filteredEmployees : data.employees
+            }
+            onEditEmployee={startEditingEmployee}
+            total={calculateTotalCostByDepartment().toFixed(2)}
+          />
+        </div>
       </div>
     </div>
   )
