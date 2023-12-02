@@ -1,0 +1,48 @@
+{
+  "departments": [
+    { "id": 1, "name": "Development" },
+    { "id": 2, "name": "Marketing" },
+    { "id": 3, "name": "HR" }
+  ],
+  "employees": [
+    {
+      "id": 1,
+      "name": "Alice",
+      "departmentId": 1,
+      "dependents": [
+        { "name": "Bob", "relation": "Spouse" },
+        { "name": "Charlie", "relation": "Child" }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Dirk",
+      "departmentId": 2,
+      "dependents": [
+        { "name": "Lucy", "relation": "Spouse" },
+        { "name": "Kathie", "relation": "Child" }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Mark",
+      "departmentId": 2,
+      "dependents": [
+        { "name": "Alice", "relation": "Spouse" },
+        { "name": "Mark jr", "relation": "Child" }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Alice",
+      "departmentId": 1,
+      "dependents": [{ "name": "Max", "relation": "Spouse" }]
+    },
+    {
+      "id": 5,
+      "name": "Nathan",
+      "departmentId": 3,
+      "dependents": [{ "name": "Cody", "relation": "Spouse" }]
+    }
+  ]
+}
